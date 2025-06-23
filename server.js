@@ -3,16 +3,16 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
 const session = require('express-session');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 
 // MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/grocery-store', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log('MongoDB connected'))
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
+
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
