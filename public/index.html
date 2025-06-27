@@ -3761,9 +3761,11 @@
 
 
 // ========== LOGIN ==========
+// ========== LOGIN ==========
 const BASE_URL = "https://kamal-s-grocery-1.onrender.com";
 
 const loginForm = document.getElementById("login-form");
+
 loginForm?.addEventListener("submit", async function (e) {
   e.preventDefault();
 
@@ -3780,21 +3782,23 @@ loginForm?.addEventListener("submit", async function (e) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ email, password }),
-      credentials: "include" // Important for session cookie
+      credentials: "include" // ✅ Important for session cookies (Vercel <-> Render)
     });
 
     const result = await response.json();
 
     if (!response.ok) throw new Error(result.message || "Login failed");
 
-    // ✅ Store in localStorage
-    localStorage.setItem("userId", result.user._id); // <== CRITICAL LINE
+    // ✅ Store data in localStorage
+    localStorage.setItem("userId", result.user._id); // <- Important: _id not id
     localStorage.setItem("userEmail", email);
     localStorage.setItem("userName", result.user.firstName || "User");
+
     if (result.user.photo) {
       localStorage.setItem("userPhoto", result.user.photo);
     }
 
+    // ✅ Hide modal and reload to update UI
     bootstrap.Modal.getInstance(document.getElementById("authModal"))?.hide();
     location.reload();
 

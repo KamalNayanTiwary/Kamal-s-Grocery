@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const session = require('express-session');
 require('dotenv').config();
-
+const cors = require('cors')
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -35,6 +35,12 @@ app.use(session({
   resave: false,
   saveUninitialized: false
 }));
+
+app.use(cors({
+  origin: "https://kamal-s-grocery.vercel.app/",  
+  credentials: true
+}));
+
 
 // === Routes ===
 const authRoutes = require('./routes/auth');
