@@ -37,7 +37,7 @@ app.use(session({
 }));
 
 app.use(cors({
-  origin: "https://kamal-s-grocery.vercel.app/",  
+  origin: "https://kamal-s-grocery.vercel.app",  
   credentials: true
 }));
 
