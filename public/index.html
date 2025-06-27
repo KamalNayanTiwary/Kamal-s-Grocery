@@ -3759,8 +3759,10 @@
     document.getElementById("login-form").classList.remove("d-none");
   });
 
-  // ========== LOGIN ==========
+
 // ========== LOGIN ==========
+const BASE_URL = "https://kamal-s-grocery-1.onrender.com";
+
 const loginForm = document.getElementById("login-form");
 loginForm?.addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -3772,10 +3774,13 @@ loginForm?.addEventListener("submit", async function (e) {
 
     if (!email || !password) throw new Error("Email and password are required");
 
-    const response = await fetch("/login", {
+    const response = await fetch(`${BASE_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: "include" // Important for session cookie
     });
 
     const result = await response.json();
