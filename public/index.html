@@ -3907,76 +3907,84 @@
       }
     }
 
-    // ========== IMPROVED EDIT PROFILE ==========
-    document.addEventListener("DOMContentLoaded", function () {
-      const editForm = document.getElementById("edit-profile-form");
+   // ========== IMPROVED EDIT PROFILE ==========
+document.addEventListener("DOMContentLoaded", function () {
+  const editForm = document.getElementById("edit-profile-form");
 
-      if (editForm) {
-        editForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
+  if (editForm) {
+    editForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
 
-          const saveBtn = editForm.querySelector('button[type="submit"]');
-          const originalText = saveBtn.innerHTML;
-          const errorDiv = document.getElementById("profile-error") || createErrorElement(editForm);
+      const saveBtn = editForm.querySelector('button[type="submit"]');
+      const originalText = saveBtn.innerHTML;
+      const errorDiv = document.getElementById("profile-error") || createErrorElement(editForm);
 
-          saveBtn.innerHTML = `
+      saveBtn.innerHTML = `
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
         Saving...
-         `;
-          saveBtn.disabled = true;
-          errorDiv.textContent = '';
-          errorDiv.classList.add('d-none');
+      `;
+      saveBtn.disabled = true;
+      errorDiv.textContent = '';
+      errorDiv.classList.add('d-none');
 
-          try {
-            const formData = new FormData(editForm);
+      try {
+        const formData = new FormData(editForm);
 
+        const userId = localStorage.getItem("userId");
+        if (!userId) throw new Error("User ID is missing. Please login again.");
+        formData.append("userId", userId);
 
-            const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("User ID is missing. Please login again.");
-            formData.append("userId", userId);
+        const email = localStorage.getItem("userEmail");
+        if (email) formData.append("oldEmail", email);
 
-            const email = localStorage.getItem("userEmail");
-            if (email) formData.append("oldEmail", email);
-
-
-            const response = await fetch("https://kamal-s-grocery-1.onrender.com/edit-profile", {
-              method: "PUT",
-              body: formData,
-              credentials: "include",
-              headers: {
-                'Accept': 'application/json'
-              }
-
-            });
-
-            if (!response.ok) {
-              const errorData = await safeParseJson(response);
-              throw new Error(errorData.message || 'Update failed (server error)');
-            }
-
-            const data = await safeParseJson(response);
-
-            if (data.user?.firstName) localStorage.setItem("userName", data.user.firstName);
-            if (data.user?.photo) localStorage.setItem("userPhoto", data.user.photo);
-
-            showSuccessMessage("✅ Profile updated successfully!");
-            setTimeout(() => location.reload(), 1500);
-
-          } catch (error) {
-            console.error("Edit Profile Error:", error);
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('d-none');
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-          } finally {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
+        const response = await fetch("https://kamal-s-grocery-1.onrender.com/edit-profile", {
+          method: "PUT",
+          body: formData,
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json'
           }
         });
+
+        if (!response.ok) {
+          const errorData = await safeParseJson(response);
+          throw new Error(errorData.message || 'Update failed (server error)');
+        }
+
+        const data = await safeParseJson(response);
+
+        // ✅ Update name
+        if (data.user?.firstName) localStorage.setItem("userName", data.user.firstName);
+
+        // ✅ Update and refresh profile photo
+        const updatedPhoto = data.user?.photo;
+        if (updatedPhoto) {
+          localStorage.setItem("userPhoto", updatedPhoto);
+
+          // ✅ Immediately refresh navbar photo if it's visible
+          const navImg = document.getElementById("nav-profile-photo");
+          if (navImg) {
+            navImg.src = `${updatedPhoto}?t=${Date.now()}`; // Force fresh load
+          }
+        }
+
+        showSuccessMessage("✅ Profile updated successfully!");
+        setTimeout(() => location.reload(), 1500);
+
+      } catch (error) {
+        console.error("Edit Profile Error:", error);
+        errorDiv.textContent = error.message;
+        errorDiv.classList.remove('d-none');
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } finally {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
       }
     });
-
+  }
+});
 
     // Initialize profile UI on load
     document.addEventListener("DOMContentLoaded", function () {
