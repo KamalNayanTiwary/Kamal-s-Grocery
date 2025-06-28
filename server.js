@@ -16,10 +16,21 @@ mongoose.connect(mongoURI)
   .then(() => console.log('🟢 MongoDB connected successfully'))
   .catch(err => {
     console.error('🔴 MongoDB connection error:', err.message);
-    process.exit(1); // exit app on DB failure
+    process.exit(1);
   });
 
-mongoose.set('debug', true); // Show DB queries in console
+mongoose.set('debug', true);
+
+// === CORS Setup (must be before all routes) ===
+const corsOptions = {
+  origin: "https://kamal-s-grocery.vercel.app",  
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); 
 
 // === Middleware ===
 app.use(express.json());
@@ -29,29 +40,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// === CORS Setup (before routes!)
-const corsOptions = {
-  origin: "https://kamal-s-grocery.vercel.app",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ Handle preflight requests
-
-// === Session Setup ===
+// === Session Setup (updated for cross-origin)
 app.use(session({
   secret: process.env.SESSION_SECRET || 'your-secret-key',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    secure: true,          
+    sameSite: 'none'       
+  }
 }));
 
 // === Routes ===
 const authRoutes = require('./routes/auth');
 app.use('/', authRoutes);
 
-// === Dashboard Route (after login) ===
+// === Dashboard Route (optional)
 app.get('/dashboard', (req, res) => {
   if (!req.session.user) {
     return res.redirect('/login.html');
@@ -63,7 +67,7 @@ app.get('/dashboard', (req, res) => {
   `);
 });
 
-// === Logout Route ===
+// === Logout
 app.get('/logout', (req, res) => {
   req.session.destroy(() => {
     res.redirect('/login.html');
