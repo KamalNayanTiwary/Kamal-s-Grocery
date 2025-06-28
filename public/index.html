@@ -136,6 +136,14 @@
     .dropdown-toggle.no-caret::after {
       display: none !important;
     }
+    #profile-photo {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+}
+
   </style>
 
 </head>
@@ -728,7 +736,7 @@
               <div class="dropdown">
                 <a href="#" class="dropdown-toggle no-caret d-flex align-items-center text-dark text-decoration-none"
                   id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img id="profile-photo" src="" alt="Profile" class="rounded-circle me-2 d-none"
+                  <img id="profile-photo" src="" alt="Profile" class="rounded-circle"
                     style="width: 32px; height: 32px; object-fit: cover;">
                   <span id="user-name" class="fw-semibold">User</span>
                 </a>
@@ -3762,551 +3770,215 @@
     });
 
 
-    // ========== LOGIN ==========
+   // ========== CONFIG ==========
+const BASE_URL = "https://kamal-s-grocery-1.onrender.com";
 
-    const BASE_URL = "https://kamal-s-grocery-1.onrender.com";
+// ========== LOGIN ==========
+const loginForm = document.getElementById("login-form");
+loginForm?.addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-    const loginForm = document.getElementById("login-form");
+  try {
+    const formData = new FormData(loginForm);
+    const email = formData.get("email")?.trim();
+    const password = formData.get("password");
 
-    loginForm?.addEventListener("submit", async function (e) {
-      e.preventDefault();
+    if (!email || !password) throw new Error("Email and password are required");
 
-      try {
-        const formData = new FormData(loginForm);
-        const email = formData.get("email")?.trim();
-        const password = formData.get("password");
-
-        if (!email || !password) throw new Error("Email and password are required");
-
-        const response = await fetch(`${BASE_URL}/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ email, password }),
-          credentials: "include" // ✅ Important for session cookies (Vercel <-> Render)
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) throw new Error(result.message || "Login failed");
-
-        // ✅ Store data in localStorage
-        localStorage.setItem("userId", result.user._id); // <- Important: _id not id
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("userName", result.user.firstName || "User");
-
-        if (result.user.photo) {
-          localStorage.setItem("userPhoto", result.user.photo);
-        }
-
-        // ✅ Hide modal and reload to update UI
-        bootstrap.Modal.getInstance(document.getElementById("authModal"))?.hide();
-        location.reload();
-
-      } catch (error) {
-        alert(error.message);
-        console.error("Login Error:", error);
-      }
+    const response = await fetch(`${BASE_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: "include"
     });
 
+    const result = await response.json();
 
-  
-  // ========== SIGNUP ==========
-  const signupForm = document.getElementById("signup-form");
-  signupForm?.addEventListener("submit", async function (e) {
-    e.preventDefault();
+    if (!response.ok) throw new Error(result.message || "Login failed");
 
-    try {
-      const formData = new FormData(signupForm);
-      const firstName = formData.get("firstName")?.trim();
-      const email = formData.get("email")?.trim();
-      const password = formData.get("password");
+    localStorage.setItem("userId", result.user._id);
+    localStorage.setItem("userEmail", email);
+    localStorage.setItem("userName", result.user.firstName || "User");
 
-      if (!firstName || !email || !password) {
-        throw new Error("Name, email and password are required");
-      }
-      if (password.length < 6) {
-        throw new Error("Password must be at least 6 characters");
-      }
-
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Signing up...
-      `;
-      submitBtn.disabled = true;
-
-      const response = await fetch("https://kamal-s-grocery-1.onrender.com/signup", {
-        method: "POST",
-        body: formData,
-        credentials: "include", 
-      });
-
-      let result = {};
-      try {
-        result = await response.json();
-      } catch {
-        throw new Error("Server error: Invalid response format");
-      }
-
-      if (!response.ok) {
-        throw new Error(result?.message || `Signup failed. Status: ${response.status}`);
-      }
-
-      alert("✅ Signup successful! Please login.");
-      signupForm.reset();
-      document.getElementById("show-login")?.click();
-
-    } catch (error) {
-      alert(error.message || "Signup failed");
-      console.error("Signup Error:", error);
-    } finally {
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      if (submitBtn) {
-        submitBtn.innerHTML = "Sign Up";
-        submitBtn.disabled = false;
-      }
+    if (result.user.photo) {
+      localStorage.setItem("userPhoto", result.user.photo);
     }
+
+    bootstrap.Modal.getInstance(document.getElementById("authModal"))?.hide();
+    location.reload();
+
+  } catch (error) {
+    alert(error.message);
+    console.error("Login Error:", error);
+  }
+});
+
+
+// ========== SIGNUP ==========
+const signupForm = document.getElementById("signup-form");
+signupForm?.addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  try {
+    const formData = new FormData(signupForm);
+    const firstName = formData.get("firstName")?.trim();
+    const email = formData.get("email")?.trim();
+    const password = formData.get("password");
+
+    if (!firstName || !email || !password) {
+      throw new Error("Name, email and password are required");
+    }
+    if (password.length < 6) {
+      throw new Error("Password must be at least 6 characters");
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = `
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Signing up...`;
+    submitBtn.disabled = true;
+
+    const response = await fetch(`${BASE_URL}/signup`, {
+      method: "POST",
+      body: formData,
+      credentials: "include"
+    });
+
+    const result = await safeParseJson(response);
+    if (!response.ok) throw new Error(result?.message || "Signup failed");
+
+    alert("✅ Signup successful! Please login.");
+    signupForm.reset();
+    document.getElementById("show-login")?.click();
+
+  } catch (error) {
+    alert(error.message || "Signup failed");
+    console.error("Signup Error:", error);
+  } finally {
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.innerHTML = "Sign Up";
+      submitBtn.disabled = false;
+    }
+  }
+});
+
+// ========== PROFILE UI ==========
+function updateProfileUI() {
+  const name = localStorage.getItem("userName");
+  const email = localStorage.getItem("userEmail");
+  const photo = localStorage.getItem("userPhoto");
+
+  const authButtons = document.getElementById("auth-buttons");
+  const profilePlaceholder = document.getElementById("profile-placeholder");
+  const authButtonsMobile = document.getElementById("auth-buttons-mobile");
+  const profilePlaceholderMobile = document.getElementById("profile-placeholder-mobile");
+
+  if (email) {
+    authButtons?.classList.add("d-none");
+    authButtonsMobile?.classList.add("d-none");
+
+    const profileHTML = `
+      <div class="dropdown">
+        <a href="#" class="dropdown-toggle no-caret d-flex align-items-center text-dark text-decoration-none" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          ${photo ? `<img src="${photo}" class="rounded-circle me-2" width="30" height="30">` : ''}
+          <strong>${name}</strong>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="profileDropdown">
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="#" onclick="logout()">Logout</a></li>
+        </ul>
+      </div>`;
+
+    profilePlaceholder.innerHTML = profileHTML;
+    profilePlaceholderMobile.innerHTML = profileHTML;
+  } else {
+    authButtons?.classList.remove("d-none");
+    authButtonsMobile?.classList.remove("d-none");
+    profilePlaceholder.innerHTML = "";
+    profilePlaceholderMobile.innerHTML = "";
+  }
+
+  toggleCartButton();
+}
+
+// ========== LOGOUT ==========
+function logout() {
+  localStorage.clear();
+  location.reload();
+}
+
+// ========== CART BUTTON VISIBILITY ==========
+function toggleCartButton() {
+  const cartButtons = document.querySelectorAll(".cart-button");
+  const isLoggedIn = !!localStorage.getItem("userEmail");
+  cartButtons.forEach(button => {
+    button.style.display = isLoggedIn ? "block" : "none";
   });
+}
 
-  // ========== PROFILE UI UPDATER ==========
-  function updateProfileUI() {
-    const firstName = localStorage.getItem("userName");
-    const photo = localStorage.getItem("userPhoto");
+// ========== HELPER ==========
+function createErrorElement(form) {
+  const div = document.createElement('div');
+  div.id = 'profile-error';
+  div.className = 'alert alert-danger d-none mb-3';
+  form.prepend(div);
+  return div;
+}
 
-    const userNameElement = document.getElementById("user-name");
-    const profilePhoto = document.getElementById("profile-photo");
-
-    if (firstName && userNameElement) {
-      userNameElement.textContent = firstName;
-    }
-
-    if (photo && profilePhoto) {
-      profilePhoto.src = photo;
-      profilePhoto.classList.remove("d-none");
-    }
+async function safeParseJson(response) {
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return await response.json();
   }
+  return { message: await response.text() };
+}
 
-  // ========== LOGOUT ==========
-  function logout() {
-    localStorage.clear();
-    window.location.href = "index.html";
-  }
+function showSuccessMessage(message) {
+  const successDiv = document.createElement('div');
+  successDiv.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
+  successDiv.style.zIndex = '9999';
+  successDiv.textContent = message;
+  document.body.appendChild(successDiv);
+  setTimeout(() => successDiv.remove(), 3000);
+}
 
-  // ========== ERROR HELPER ==========
-  function createErrorElement(parent) {
-    const errorDiv = document.createElement("div");
-    errorDiv.id = "profile-error";
-    errorDiv.className = "alert alert-danger mt-2 d-none";
-    parent.prepend(errorDiv);
-    return errorDiv;
-  }
-
-  function showSuccessMessage(msg) {
-    alert(msg);
-  }
-
-  async function safeParseJson(response) {
-    try {
-      return await response.json();
-    } catch {
-      return {};
+// ========== JOIN NOW BUTTON PROTECTION ==========
+document.querySelectorAll('.join-now-button').forEach(button => {
+  button.addEventListener('click', function (e) {
+    if (localStorage.getItem("userEmail")) {
+      e.preventDefault();
+      showAlreadyJoinedMessage();
+      return false;
     }
-  }
-
-
-
-    // ========== IMPROVED EDIT PROFILE ==========
-    document.addEventListener("DOMContentLoaded", function () {
-      const editForm = document.getElementById("edit-profile-form");
-
-      if (editForm) {
-        editForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-
-          const saveBtn = editForm.querySelector('button[type="submit"]');
-          const originalText = saveBtn.innerHTML;
-          const errorDiv = document.getElementById("profile-error") || createErrorElement(editForm);
-
-          saveBtn.innerHTML = `
-        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-        Saving...
-      `;
-          saveBtn.disabled = true;
-          errorDiv.textContent = '';
-          errorDiv.classList.add('d-none');
-
-          try {
-            const formData = new FormData(editForm);
-
-
-            const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("User ID is missing. Please login again.");
-            formData.append("userId", userId);
-
-            const email = localStorage.getItem("userEmail");
-            if (email) formData.append("oldEmail", email);
-
-
-            const response = await fetch("https://kamal-s-grocery-1.onrender.com/edit-profile", {
-              method: "PUT",
-              body: formData,
-              credentials: "include",
-              headers: {
-                'Accept': 'application/json'
-              }
-
-            });
-
-            if (!response.ok) {
-              const errorData = await safeParseJson(response);
-              throw new Error(errorData.message || 'Update failed (server error)');
-            }
-
-            const data = await safeParseJson(response);
-
-            if (data.user?.firstName) localStorage.setItem("userName", data.user.firstName);
-            if (data.user?.photo) localStorage.setItem("userPhoto", data.user.photo);
-
-            showSuccessMessage("✅ Profile updated successfully!");
-            setTimeout(() => location.reload(), 1500);
-
-          } catch (error) {
-            console.error("Edit Profile Error:", error);
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('d-none');
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-          } finally {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-          }
-        });
-      }
-    });
-
-
-    // Initialize profile UI on load
-    document.addEventListener("DOMContentLoaded", function () {
-      updateProfileUI();
-    });
-
-
-
-
-    // Fallback: create error div if not present
-    function createErrorElement(form) {
-      const errorDiv = document.createElement("div");
-      errorDiv.className = "alert alert-danger mt-2 d-none";
-      errorDiv.id = "profile-error";
-      form.prepend(errorDiv);
-      return errorDiv;
-    }
-
-    // Safe JSON parser
-    async function safeParseJson(response) {
-      try {
-        return await response.json();
-      } catch {
-        return {};
-      }
-    }
-
-    // Optional: simple success message handler
-    function showSuccessMessage(msg) {
-      alert(msg);
-    }
-
-    function updateProfileUI() {
-      const firstName = localStorage.getItem("userName");
-      const photo = localStorage.getItem("userPhoto");
-
-      const userNameElement = document.getElementById("user-name");
-      const profilePhoto = document.getElementById("profile-photo");
-
-      if (firstName && userNameElement) {
-        userNameElement.textContent = firstName;
-      }
-
-      if (photo && profilePhoto) {
-        profilePhoto.src = photo;
-        profilePhoto.classList.remove("d-none");
-      }
-    }
-
-    function logout() {
-      localStorage.clear();
-      window.location.href = "index.html";
-    }
-
-    function createErrorElement(parent) {
-      const errorDiv = document.createElement("div");
-      errorDiv.id = "profile-error";
-      errorDiv.className = "alert alert-danger mt-2 d-none";
-      parent.prepend(errorDiv);
-      return errorDiv;
-    }
-
-    function showSuccessMessage(msg) {
-      alert(msg);
-    }
-
-    async function safeParseJson(response) {
-      try {
-        return await response.json();
-      } catch {
-        return {};
-      }
-    }
-
-    // ========== IMPROVED EDIT PROFILE ==========
-    document.addEventListener("DOMContentLoaded", function () {
-      const editForm = document.getElementById("edit-profile-form");
-
-      if (editForm) {
-        editForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-
-          const saveBtn = editForm.querySelector('button[type="submit"]');
-          const originalText = saveBtn.innerHTML;
-          const errorDiv = document.getElementById("profile-error") || createErrorElement(editForm);
-
-          saveBtn.innerHTML = `
-          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-          Saving...
-        `;
-          saveBtn.disabled = true;
-          errorDiv.textContent = '';
-          errorDiv.classList.add('d-none');
-
-          try {
-            const formData = new FormData(editForm);
-
-            // ✅ Append userId from localStorage
-            const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("User ID is missing. Please login again.");
-            formData.append("userId", userId);
-
-            const email = localStorage.getItem("userEmail");
-            if (email) formData.append("oldEmail", email);
-
-            const response = await fetch("/edit-profile", {
-              method: "PUT",
-              body: formData,
-              headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            });
-
-            if (!response.ok) {
-              const errorData = await safeParseJson(response);
-              throw new Error(errorData.message || 'Update failed (server error)');
-            }
-
-            const data = await safeParseJson(response);
-
-            if (data.user?.firstName) localStorage.setItem("userName", data.user.firstName);
-            if (data.user?.photo) localStorage.setItem("userPhoto", data.user.photo);
-
-            showSuccessMessage("✅ Profile updated successfully!");
-            setTimeout(() => location.reload(), 1500);
-
-          } catch (error) {
-            console.error("Edit Profile Error:", error);
-            errorDiv.textContent = error.message;
-            errorDiv.classList.remove('d-none');
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-          } finally {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-          }
-        });
-      }
-    });
-
-    // Initialize profile UI on load
-    document.addEventListener("DOMContentLoaded", function () {
-      updateProfileUI();
-    });
-
-
-
-
-
-
-    // Helper functions
-    function createErrorElement(form) {
-      const div = document.createElement('div');
-      div.id = 'profile-error';
-      div.className = 'alert alert-danger d-none mb-3';
-      form.prepend(div);
-      return div;
-    }
-
-    async function safeParseJson(response) {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return await response.json();
-      }
-      return { message: await response.text() };
-    }
-
-    function showSuccessMessage(message) {
-      const successDiv = document.createElement('div');
-      successDiv.className = 'alert alert-success position-fixed top-0 start-50 translate-middle-x mt-3';
-      successDiv.style.zIndex = '9999';
-      successDiv.textContent = message;
-      document.body.appendChild(successDiv);
-
-      setTimeout(() => successDiv.remove(), 3000);
-    }
-
-
-
-    function toggleCartButton() {
-      const cartButtons = document.querySelectorAll(".cart-button");
-      const isLoggedIn = !!localStorage.getItem("userEmail");
-
-      cartButtons.forEach(button => {
-        button.style.display = isLoggedIn ? "block" : "none";
-      });
-    }
-
-    function showAlreadyJoinedMessage() {
-      const message = document.createElement('div');
-      message.textContent = "You are already joined!";
-      message.style.position = 'fixed';
-      message.style.bottom = '20px';
-      message.style.right = '20px';
-      message.style.backgroundColor = '#4CAF50';
-      message.style.color = 'white';
-      message.style.padding = '10px 20px';
-      message.style.borderRadius = '5px';
-      message.style.zIndex = '1055';
-      message.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
-      document.body.appendChild(message);
-      setTimeout(() => { message.remove(); }, 3000);
-    }
-
-    document.querySelectorAll('.join-now-button').forEach(button => {
-      button.addEventListener('click', function (e) {
-        if (localStorage.getItem("userEmail")) {
-          e.preventDefault();
-          showAlreadyJoinedMessage();
-          return false;
-        }
-        return true;
-      });
-    });
-
-    function updateProfileUI() {
-      const name = localStorage.getItem("userName");
-      const email = localStorage.getItem("userEmail");
-      const photo = localStorage.getItem("userPhoto");
-
-      const authButtons = document.getElementById("auth-buttons");
-      const profilePlaceholder = document.getElementById("profile-placeholder");
-      const authButtonsMobile = document.getElementById("auth-buttons-mobile");
-      const profilePlaceholderMobile = document.getElementById("profile-placeholder-mobile");
-
-      if (email) {
-        if (authButtons) authButtons.style.display = 'none';
-        if (authButtonsMobile) authButtonsMobile.style.display = 'none';
-
-        const profileHTML = `
-        <div class="dropdown">
-          <a href="#" class="dropdown-toggle no-caret d-flex align-items-center text-dark text-decoration-none" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            ${photo ? `<img src="${photo}" class="rounded-circle me-2" width="30" height="30">` : ''}
-            <strong>${name}</strong>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="profileDropdown">
-            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">Logout</a></li>
-          </ul>
-        </div>`;
-        if (profilePlaceholder) profilePlaceholder.innerHTML = profileHTML;
-
-        const profileHTMLMobile = `
-        <div class="dropdown">
-          <a href="#" class="dropdown-toggle no-caret d-flex align-items-center text-dark text-decoration-none" id="profileDropdownMobile" data-bs-toggle="dropdown" aria-expanded="false">
-            ${photo ? `<img src="${photo}" class="rounded-circle me-2" width="30" height="30">` : ''}
-            <strong>${name}</strong>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end text-small shadow" aria-labelledby="profileDropdownMobile">
-            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profile</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" onclick="logout()">Logout</a></li>
-          </ul>
-        </div>`;
-        if (profilePlaceholderMobile) profilePlaceholderMobile.innerHTML = profileHTMLMobile;
-      } else {
-        if (authButtons) authButtons.style.display = 'block';
-        if (authButtonsMobile) authButtonsMobile.style.display = 'block';
-        if (profilePlaceholder) profilePlaceholder.innerHTML = '';
-        if (profilePlaceholderMobile) profilePlaceholderMobile.innerHTML = '';
-      }
-
-      toggleCartButton();
-    }
-
-    function logout() {
-      localStorage.removeItem("userName");
-      localStorage.removeItem("userEmail");
-      localStorage.removeItem("userPhoto");
-      location.reload();
-    }
-
-    function enableEdit(span) {
-      const input = span.previousElementSibling;
-      input.removeAttribute('readonly');
-      input.focus();
-    }
-
-    document.addEventListener("DOMContentLoaded", function () {
-      const editForm = document.getElementById("edit-profile-form");
-
-      // ✅ Only add listener if form is found
-      if (editForm) {
-        editForm.addEventListener("submit", async function (e) {
-          e.preventDefault();
-
-          const formData = new FormData(editForm);
-          const email = localStorage.getItem("userEmail");
-          if (email) formData.append("oldEmail", email);
-
-          try {
-            const response = await fetch("/edit-profile", {
-              method: "POST",
-              body: formData,
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-              alert("✅ Profile updated successfully!");
-              // Update localStorage values
-              if (result.firstName) localStorage.setItem("userName", result.firstName);
-              if (result.photo) localStorage.setItem("userPhoto", result.photo);
-              location.reload();
-            } else {
-              alert(result.message || " Profile update failed.");
-            }
-          } catch (error) {
-            console.error("Update Error:", error);
-            alert("⚠️ Something went wrong while updating profile.");
-          }
-        });
-      } else {
-        console.warn("⚠️ Edit Profile Form not found in DOM.");
-      }
-    });
+    return true;
+  });
+});
+
+function showAlreadyJoinedMessage() {
+  const message = document.createElement('div');
+  message.textContent = "You are already joined!";
+  message.style.position = 'fixed';
+  message.style.bottom = '20px';
+  message.style.right = '20px';
+  message.style.backgroundColor = '#4CAF50';
+  message.style.color = 'white';
+  message.style.padding = '10px 20px';
+  message.style.borderRadius = '5px';
+  message.style.zIndex = '1055';
+  message.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+  document.body.appendChild(message);
+  setTimeout(() => { message.remove(); }, 3000);
+}
+
+// ========== INIT ==========
+document.addEventListener("DOMContentLoaded", function () {
+  updateProfileUI();
+});
 
 
 

@@ -77,7 +77,9 @@ router.post("/signup", upload.single("photo"), async (req, res) => {
         _id: newUser._id,
         firstName: newUser.firstName,
         email: newUser.email,
-        photo: newUser.photo,
+        photo: newUser.photo
+          ? `${req.protocol}://${req.get("host")}${newUser.photo}`
+          : null,
       },
     });
   } catch (err) {
