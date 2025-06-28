@@ -142,7 +142,12 @@ router.put("/edit-profile", upload.single("photo"), async (req, res) => {
     if (firstName?.trim()) user.firstName = firstName.trim();
     if (lastName?.trim()) user.lastName = lastName.trim();
     if (mobile?.trim()) user.mobile = mobile.trim();
-    if (req.file) user.photo = "/uploads/" + req.file.filename;
+
+    // ✅ Update photo with full absolute URL
+    if (req.file) {
+      const baseUrl = "https://kamal-s-grocery-1.onrender.com";
+      user.photo = `${baseUrl}/uploads/${req.file.filename}`;
+    }
 
     // Change password if requested
     if (oldPassword && newPassword) {
@@ -164,7 +169,7 @@ router.put("/edit-profile", upload.single("photo"), async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         mobile: user.mobile,
-        photo: user.photo,
+        photo: user.photo, // ✅ Now returns full photo URL
       },
     });
   } catch (err) {
@@ -172,5 +177,6 @@ router.put("/edit-profile", upload.single("photo"), async (req, res) => {
     res.status(500).json({ message: "Server error during profile update" });
   }
 });
+
 
 module.exports = router;
