@@ -4023,6 +4023,22 @@ document.addEventListener("DOMContentLoaded", function () {
   </script>
 
   <script>
+  // ✅ Yeh DOMContentLoaded ke bahar hona chahiye
+  function enableEdit(span) {
+    const input = span.previousElementSibling;
+    if (input) {
+      input.removeAttribute('readonly');
+      input.focus();
+    } else {
+      console.warn("No input field found before this span");
+    }
+  }
+</script>
+</body>
+</html>
+
+
+  <script>
     document.addEventListener("DOMContentLoaded", () => {
       const isLoggedIn = !!localStorage.getItem("userEmail");
 
